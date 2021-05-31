@@ -36,15 +36,39 @@ final class DAOTest extends TestCase
         $dao = new DAOforTest();
         $this->assertIsObject($dao);
 
+        // Testing create
         $daoCreate = $dao->create(['columnone'=>'aaa','columntwo'=>'01-01-2030']);
         $this->assertEquals(1, $daoCreate);
 
+        // Testing get
         $daoGet = $dao->get($daoCreate);
         $this->assertIsArray($daoGet);
         $this->assertEquals($daoCreate, $daoGet['id']);
         $this->assertEquals('aaa', $daoGet['columnone']);
         $this->assertEquals('01-01-2030', $daoGet['columntwo']);
         $this->assertEquals(1, $daoGet['active']);
+
+        // Testing list
+        $daoList = $dao->list();
+        $this->assertIsArray($daoList);
+        $this->assertArrayHasKey($daoCreate, $daoList);
+        $this->assertEquals($daoGet, $daoList[$daoCreate]);
+        
+        // Testing delete
+        $daoDelete = $dao->del($daoCreate);
+        $this->assertTrue($daoDelete);
+        // This DAO deactivates its objects - The object can be retrieved with active = 0
+        $daoGetDeactivated = $dao->get($daoCreate);
+        $this->assertIsArray($daoGetDeactivated);
+        $this->assertEquals($daoCreate, $daoGetDeactivated['id']);
+        $this->assertEquals('aaa', $daoGetDeactivated['columnone']);
+        $this->assertEquals('01-01-2030', $daoGetDeactivated['columntwo']);
+        $this->assertEquals(0, $daoGetDeactivated['active']);
+        // This DAO deactivates its objects - The list cannot retrieve deactivated objects
+        // in a simple list()
+        $daoList = $dao->list();
+        $this->assertIsArray($daoList);
+        $this->assertArrayNotHasKey($daoCreate, $daoList);
 
     }
 }
