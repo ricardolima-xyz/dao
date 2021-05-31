@@ -76,7 +76,7 @@ final class DAOTest extends TestCase
 class DAOforTest extends DAO {
     function __construct() {
         parent::__construct(
-            '',new PDO("sqlite:./test.db"),
+            new PDO("sqlite:./test.db"),
             'test_table',
             [
                 'id'            => PDO::PARAM_INT,
