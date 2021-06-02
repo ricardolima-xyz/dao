@@ -107,7 +107,7 @@ final class DAOTest extends TestCase
         $this->assertEquals(true, $daoExists4);
 
         // Multiple queries
-        for ($i=0; $i < 10; $i++) {
+        for ($i=0; $i < 50; $i++) {
             $daoCreatex = $dao->create(['columnone'=>microtime(),'columntwo'=>'01-01-2030']);
             $this->assertEquals($i+3, $daoCreatex);
         }

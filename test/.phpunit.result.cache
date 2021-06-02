@@ -1,1 +1,1 @@
-C:37:"PHPUnit\Runner\DefaultTestResultCache":221:{a:2:{s:7:"defects";a:2:{s:7:"Warning";i:6;s:13:"DAOTest::test";i:3;}s:5:"times";a:3:{s:7:"Warning";d:0;s:23:"DAOTest::testPushAndPop";d:0;s:13:"DAOTest::test";d:0.1010000000000000064392935428259079344570636749267578125;}}}
+C:37:"PHPUnit\Runner\DefaultTestResultCache":123:{a:2:{s:7:"defects";a:0:{}s:5:"times";a:1:{s:13:"DAOTest::test";d:0.54900000000000004352074256530613638460636138916015625;}}}
