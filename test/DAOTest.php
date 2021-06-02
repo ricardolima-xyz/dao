@@ -36,9 +36,25 @@ final class DAOTest extends TestCase
         $dao = new DAOforTest();
         $this->assertIsObject($dao);
 
+        // Testing count - Empty database
+        $daoCount1 = $dao->count();
+        $this->assertEquals(0, $daoCount1);
+
+        // Testing exists - Empty database
+        $daoExists1 = $dao->exists('1');
+        $this->assertEquals(false, $daoExists1);
+
         // Testing create
         $daoCreate = $dao->create(['columnone'=>'aaa','columntwo'=>'01-01-2030']);
         $this->assertEquals(1, $daoCreate);
+
+        // Testing count - Database with one element
+        $daoCount2 = $dao->count();
+        $this->assertEquals(1, $daoCount2);
+
+        // Testing exists - Database with one element
+        $daoExists2 = $dao->exists('1');
+        $this->assertEquals(true, $daoExists2);
 
         // Testing get
         $daoGet = $dao->get($daoCreate);
@@ -69,6 +85,32 @@ final class DAOTest extends TestCase
         $daoList = $dao->list();
         $this->assertIsArray($daoList);
         $this->assertArrayNotHasKey($daoCreate, $daoList);
+
+        // Testing another create
+        $daoCreate = $dao->create(['columnone'=>'bbb','columntwo'=>'02-01-2030']);
+        $this->assertEquals(2, $daoCreate);
+
+        // Testing count - Database with one element (plus one more inactive element)
+        $daoCount3 = $dao->count();
+        $this->assertEquals(1, $daoCount3);
+
+        // Testing count - considering active and inactive elements
+        $daoCount4 = $dao->count([['property' => 'active', 'operator'=>'<', 'value' => 2]]);
+        $this->assertEquals(2, $daoCount4);
+
+        // Testing exists - The element is inactive. Can only be retrieved by get.
+        $daoExists3 = $dao->exists('1');
+        $this->assertEquals(false, $daoExists3);
+
+        // Testing exists - The remaining active element.
+        $daoExists4 = $dao->exists('2');
+        $this->assertEquals(true, $daoExists4);
+
+        // Multiple queries
+        for ($i=0; $i < 10; $i++) {
+            $daoCreatex = $dao->create(['columnone'=>microtime(),'columntwo'=>'01-01-2030']);
+            $this->assertEquals($i+3, $daoCreatex);
+        }
 
     }
 }
