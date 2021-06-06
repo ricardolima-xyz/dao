@@ -227,9 +227,9 @@ abstract class DAO
                 $direction = isset($ob['direction']) ? strtoupper($ob['direction']) : 'ASC';
                 $orderByQuery[] = $this->escape($ob['property']).' '.$direction;
             }
-            if (!empty($orderByQuery)) return ' ORDER BY '.implode(', ', $orderByQuery);
-            else return '';
         }
+        if (!empty($orderByQuery)) return ' ORDER BY '.implode(', ', $orderByQuery);
+        else return '';  
     }
 
     public function get($key) {
@@ -311,5 +311,4 @@ abstract class DAO
         $stmt->execute();
         return true;
     }
-    
 }
