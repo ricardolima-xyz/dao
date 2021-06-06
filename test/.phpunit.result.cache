@@ -1,1 +1,1 @@
-C:37:"PHPUnit\Runner\DefaultTestResultCache":123:{a:2:{s:7:"defects";a:0:{}s:5:"times";a:1:{s:13:"DAOTest::test";d:0.54900000000000004352074256530613638460636138916015625;}}}
+C:37:"PHPUnit\Runner\DefaultTestResultCache":145:{a:2:{s:7:"defects";a:1:{s:13:"DAOTest::test";i:4;}s:5:"times";a:1:{s:13:"DAOTest::test";d:0.58499999999999996447286321199499070644378662109375;}}}

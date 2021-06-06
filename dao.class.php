@@ -85,60 +85,27 @@ abstract class DAO
         }           
     }
 
-    // TODO count uses much code of list() for the where clause. Consider refactoring.
     /**
-     *  When $filters are set and the Dao subclass deletes by deactivating, $deactivateProperty
-     *  needs to be in the search parameters if only the not deleted entries need to be retrieved.
-     *  If no parameters are passed ($filters == null), this function will retriver only the active
-     *  (not deleted) items.
-     * 
-     *  $filters is an array of filter objects. A filter is an array with 3 keys: 'property',
-     *  'operator' and 'value'. Example: ['property' => 'id', 'operator'=>'=', 'value' => '42'];
-     * 
-     *  Implemented operators: =, <, >, <=, >=, <>, LIKE
+     * @param array|null $filters - The filter for list. If null, no filtering will be performed.
+     * If not null, needs to be an array of filter objects. The filter object is an associative
+     * array with 3 keys: 'property', 'operator', 'value'. When $filters are set and the DAO class
+     * deletes by deactivating, the deactivate property needs to be included in the filter, or all
+     * the objects, included the deleted ones will be retrieved. If $filters is null, only the
+     * not deleted ones will be retrieved. Implemented operators: =, <, >, <=, >=, <>, !=, LIKE.
+     * Example: [['property' => 'id', 'operator'=>'=', 'value' => '42']]
      */ 
     public function count($filters = null)
     {
+        // Discarding array key information and retrieving an ordered array
+        if(is_array($filters)) $filters = array_values($filters);
+
         $query = 'SELECT count(*) FROM '.$this->escape($this->entity);
-        if ($filters === null && $this->delMethod == self::DEL_METHOD_DEACTIVATE) {
-            $query .= ' WHERE '.$this->escape($this->deactivateProperty).' = 1';
-        }
-
-        $pos = 0;
-        $filterQuery = array();
-        $filterVariables = array();
-        $filterTypes = array();
-        if (is_array($filters)) foreach ($filters as $key => $filter) {
-            if (!isset($filter['operator']))
-                throw new DAOException('Operator not specified for filter in position '.$key.'.');
-            else if (!in_array($filter['operator'], ['=','<','>','<=','>=','<>','LIKE']))
-                throw new DAOException('Invalid or unimplemented operator '.$filter['operator'].' for filter in position '.$key.'.');
-            else if (!isset($filter['property']))
-                throw new DAOException('Missing \'property\' for filter in position '.$key.'.');
-            else if(!isset($this->properties[$filter['property']]))
-                throw new DAOException('The property '.$filter['property'].' for filter in position '.$key.' is not defined in the class.');
-            else if (!isset($filter['value']))
-                throw new DAOException('Missing \'value\' for filter in position '.$key.'.');
-            else { // all good!
-                $filterQuery[$pos] = $this->escape($filter['property']).' '.$filter['operator'].' ?';
-                $filterVariables[$pos] = $filter['value'];
-                $filterTypes[$pos] = $this->properties[$filter['property']];
-                $pos++;
-            }
-        }
-
-        if ($pos > 0) {
-            $query.= ' WHERE '.implode(' AND ', $filterQuery);
-        }
+        $query.= $this->evalFilters($filters);
 
         $stmt = $this->dbh->prepare($query);
-
-        if ($pos > 0) {    
-            for($i = 0; $i < $pos; $i++) {
-                $stmt->bindValue($i+1, $filterVariables[$i], $filterTypes[$i]);
-            }
+        if(is_array($filters)) foreach ($filters as $i => $filter) {
+            $stmt->bindValue($i+1, $filter['value'], $this->properties[$filter['property']]);
         }
-        
         $stmt->execute();
         return $stmt->fetchColumn();
     }
@@ -221,6 +188,50 @@ abstract class DAO
         return (boolean) $this->count($filters);
     }
 
+    /** $filters is a numeric-indexed array */
+    private function evalFilters($filters) {
+        $filterQuery = array();
+        if ($filters === null && $this->delMethod == self::DEL_METHOD_DEACTIVATE) {
+            return ' WHERE '.$this->escape($this->deactivateProperty).' = 1';
+        }
+        if (is_array($filters)) foreach ($filters as $key => $filter) {
+            if (!isset($filter['operator']))
+                throw new DAOException('Operator not specified for filter in position '.$key.'.');
+            else if (!in_array($filter['operator'], ['=','<','>','<=','>=','<>','!=','LIKE']))
+                throw new DAOException('Invalid or unimplemented operator '.$filter['operator'].' for filter in position '.$key.'.');
+            else if (!isset($filter['property']))
+                throw new DAOException('Missing \'property\' for filter in position '.$key.'.');
+            else if(!isset($this->properties[$filter['property']]))
+                throw new DAOException('The property '.$filter['property'].' for filter in position '.$key.' is not defined in the class.');
+            else if (!isset($filter['value']))
+                throw new DAOException('Missing \'value\' for filter in position '.$key.'.');
+            else { // all good!
+                $filterQuery[] = $this->escape($filter['property']).' '.$filter['operator'].' ?';
+            }
+        }
+        if (!empty($filterQuery)) return ' WHERE '.implode(' AND ', $filterQuery);
+        else return '';
+    }
+
+    /** $orderBy is a numeric-indexed array */
+    private function evalOrderBy($orderBy) {
+        $orderByQuery = array();
+        if (is_array($orderBy)) foreach ($orderBy as $key => $ob) {
+            if (!isset($ob['property']))
+                throw new DAOException('Missing \'property\' for orderBy in position '.$key.'.');
+            else if(!isset($this->properties[$ob['property']]))
+                throw new DAOException('The property '.$ob['property'].' for orderBy in position '.$key.' is not defined in the class.');
+            else if (isset($ob['direction']) && !in_array(strtolower($ob['direction']), ['asc', 'desc']))
+                throw new DAOException('Invalid \'direction\' for orderBy in position '.$key.'.');
+            else { // all good!
+                $direction = isset($ob['direction']) ? strtoupper($ob['direction']) : 'ASC';
+                $orderByQuery[] = $this->escape($ob['property']).' '.$direction;
+            }
+            if (!empty($orderByQuery)) return ' ORDER BY '.implode(', ', $orderByQuery);
+            else return '';
+        }
+    }
+
     public function get($key) {
         $stmt = $this->dbh->prepare(
             'SELECT * FROM '.$this->escape($this->entity).' WHERE '.$this->escape($this->key).' = ?');
@@ -231,56 +242,32 @@ abstract class DAO
     }
 
     /**
-     *  When $filters are set and the Dao subclass deletes by deactivating, $deactivateProperty
-     *  needs to be in the search parameters if only the not deleted entries need to be retrieved.
-     *  If no parameters are passed ($filters == null), this function will retriver only the active
-     *  (not deleted) items.
+     * @param array|null $filters - The filter for list. If null, no filtering will be performed.
+     * If not null, needs to be an array of filter objects. The filter object is an associative
+     * array with 3 keys: 'property', 'operator', 'value'. When $filters are set and the DAO class
+     * deletes by deactivating, the deactivate property needs to be included in the filter, or all
+     * the objects, included the deleted ones will be retrieved. If $filters is null, only the
+     * not deleted ones will be retrieved. Implemented operators: =, <, >, <=, >=, <>, !=, LIKE.
+     * Example: [['property' => 'id', 'operator'=>'=', 'value' => '42']]
      * 
-     *  $filters is an array of filter objects. This object need to have 3 keys: 'property',
-     *  'operator' and 'value'. Example: [['property' => 'id', 'operator'=>'=', 'value' => '42']];
-     * 
-     *  Implemented operators: =, <, >, <=, >=, <>, LIKE
+     * @param array|null $orderBy - The order by information, if any. If null, no ordering will be
+     * performed. If not null, it needs to be an indexed array (simple array) of orderby objects.
+     * The orderby object is an associative array with 2 keys: 'property', 'direction'. 
+     * If 'direction' is not set, it will default to 'ASC'. 'direction' is case-insensitive.
+     * Example: [['property' => 'id', 'direction' => 'desc']]
      */ 
-    public function list($elementKeyAsArrayKey = true, $filters = null)
+    public function list($elementKeyAsArrayKey = true, $filters = null, $orderBy = null)
     {
-        $query = 'SELECT * FROM '.$this->escape($this->entity);
-        if ($filters === null && $this->delMethod == self::DEL_METHOD_DEACTIVATE) {
-            $query .= ' WHERE '.$this->escape($this->deactivateProperty).' = 1';
-        }
+        // Discarding array key information and retrieving an ordered array
+        if(is_array($filters)) $filters = array_values($filters);
 
-        $pos = 0;
-        $filterQuery = array();
-        $filterVariables = array();
-        $filterTypes = array();
-        if (is_array($filters)) foreach ($filters as $key => $filter) {
-            if (!isset($filter['operator']))
-                throw new DAOException('Operator not specified for filter in position '.$key.'.');
-            else if (!in_array($filter['operator'], ['=','<','>','<=','>=','<>','LIKE']))
-                throw new DAOException('Invalid or unimplemented operator '.$filter['operator'].' for filter in position '.$key.'.');
-            else if (!isset($filter['property']))
-                throw new DAOException('Missing \'property\' for filter in position '.$key.'.');
-            else if(!isset($this->properties[$filter['property']]))
-                throw new DAOException('The property '.$filter['property'].' for filter in position '.$key.' is not defined in the class.');
-            else if (!isset($filter['value']))
-                throw new DAOException('Missing \'value\' for filter in position '.$key.'.');
-            else { // all good!
-                $filterQuery[$pos] = $this->escape($filter['property']).' '.$filter['operator'].' ?';
-                $filterVariables[$pos] = $filter['value'];
-                $filterTypes[$pos] = $this->properties[$filter['property']];
-                $pos++;
-            }
-        }
-
-        if ($pos > 0) {
-            $query.= ' WHERE '.implode(' AND ', $filterQuery);
-        }
+        $query = 'SELECT * FROM '.$this->escape($this->entity).' ';
+        $query.= $this->evalFilters($filters);
+        $query.= $this->evalOrderBy($orderBy);
 
         $stmt = $this->dbh->prepare($query);
-
-        if ($pos > 0) {    
-            for($i = 0; $i < $pos; $i++) {
-                $stmt->bindValue($i+1, $filterVariables[$i], $filterTypes[$i]);
-            }
+        if(is_array($filters)) foreach ($filters as $i => $filter) {
+            $stmt->bindValue($i+1, $filter['value'], $this->properties[$filter['property']]);
         }
         
         $stmt->execute();
