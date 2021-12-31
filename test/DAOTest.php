@@ -7,7 +7,7 @@ final class DAOTest extends TestCase
 {
     public function test(): void
     {
-        $pdo = new PDO("sqlite:./test.db");
+        $pdo = new PDO("sqlite:./test.sqlite");
         $this->assertIsObject($pdo);
         
         $cleanDatabase = $pdo->exec("
@@ -18,7 +18,7 @@ final class DAOTest extends TestCase
 
         $createTable = $pdo->exec("
             CREATE TABLE IF NOT EXISTS test_table (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY,
                 columnone VARCHAR( 255 ),
                 columntwo DATE,
                 active INTEGER DEFAULT 1
@@ -70,6 +70,9 @@ final class DAOTest extends TestCase
         $this->assertArrayHasKey($daoCreate, $daoList);
         $this->assertEquals($daoGet, $daoList[$daoCreate]);
         
+        // Testing update
+        $daoUpdate = $dao->update(['id'=>$daoCreate,'columnone'=>'zzz','columntwo'=>'02-02-2030']);
+
         // Testing delete
         $daoDelete = $dao->del($daoCreate);
         $this->assertTrue($daoDelete);
@@ -77,8 +80,8 @@ final class DAOTest extends TestCase
         $daoGetDeactivated = $dao->get($daoCreate);
         $this->assertIsArray($daoGetDeactivated);
         $this->assertEquals($daoCreate, $daoGetDeactivated['id']);
-        $this->assertEquals('aaa', $daoGetDeactivated['columnone']);
-        $this->assertEquals('01-01-2030', $daoGetDeactivated['columntwo']);
+        $this->assertEquals('zzz', $daoGetDeactivated['columnone']);
+        $this->assertEquals('02-02-2030', $daoGetDeactivated['columntwo']);
         $this->assertEquals(0, $daoGetDeactivated['active']);
         // This DAO deactivates its objects - The list cannot retrieve deactivated objects
         // in a simple list()
@@ -107,7 +110,7 @@ final class DAOTest extends TestCase
         $this->assertEquals(true, $daoExists4);
 
         // Multiple queries
-        for ($i=0; $i < 50; $i++) {
+        for ($i=0; $i < 5000; $i++) {
             $daoCreatex = $dao->create(['columnone'=>microtime(),'columntwo'=>'01-01-2030']);
             $this->assertEquals($i+3, $daoCreatex);
         }
@@ -118,7 +121,7 @@ final class DAOTest extends TestCase
 class DAOforTest extends DAO {
     function __construct() {
         parent::__construct(
-            new PDO("sqlite:./test.db"),
+            new PDO("sqlite:./test.sqlite"),
             'test_table',
             [
                 'id'            => PDO::PARAM_INT,

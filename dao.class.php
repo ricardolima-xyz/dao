@@ -169,13 +169,12 @@ abstract class DAO
         }
     }
 
-    // TODO: IMPLEMENT FOR OTHER DRIVERS
     protected function esc($name) {
         switch ($this->driver) {
             case 'mysql':
                 return "`$name`";
             default:
-                return $name;
+                return "\"$name\"";
         }
     }
 
@@ -299,7 +298,7 @@ abstract class DAO
             }
         }
 
-        $query = 'UPDATE '.$this->esc($this->entity).' SET';
+        $query = 'UPDATE '.$this->esc($this->entity).' SET ';
         $query.= implode(', ', $params);
         $query.= ' WHERE '.$this->esc($this->key).' = ?';
 
