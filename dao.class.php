@@ -310,4 +310,15 @@ abstract class DAO
         $stmt->execute();
         return true;
     }
+
+    public function updateKey($oldkey, $newkey) {
+        $query = 'UPDATE '.$this->esc($this->entity);
+        $query.= ' SET   '.$this->esc($this->key).' = ?';
+        $query.= ' WHERE '.$this->esc($this->key).' = ?';
+        $stmt = $this->dbh->prepare($query);
+        $stmt->bindValue(1, $newkey, $this->properties[$this->key]);
+        $stmt->bindValue(2, $oldkey, $this->properties[$this->key]);
+        $stmt->execute();
+        return true;
+    }
 }

@@ -73,13 +73,28 @@ final class DAOTest extends TestCase
         // Testing update
         $daoUpdate = $dao->update(['id'=>$daoCreate,'columnone'=>'zzz','columntwo'=>'02-02-2030']);
 
+        // Testing updatekey
+        $newkey = 2;
+        $daoUpdate = $dao->updateKey($daoCreate, $newkey);
+
+        // Testing get after updates
+        $daoGetAfterUpdate = $dao->get($newkey);
+        $this->assertIsArray($daoGetAfterUpdate);
+        $this->assertEquals($newkey, $daoGetAfterUpdate['id']);
+        $this->assertEquals('zzz', $daoGetAfterUpdate['columnone']);
+        $this->assertEquals('02-02-2030', $daoGetAfterUpdate['columntwo']);
+        $this->assertEquals(1, $daoGetAfterUpdate['active']);
+
         // Testing delete
-        $daoDelete = $dao->del($daoCreate);
+        $daoDelete = $dao->del($newkey);
         $this->assertTrue($daoDelete);
-        // This DAO deactivates its objects - The object can be retrieved with active = 0
-        $daoGetDeactivated = $dao->get($daoCreate);
+        // This DAO deactivates its objects. A simple list can't retrieve them,
+        // a more complex list can retrieve them and a get can also retrieve them.
+        $this->assertEquals(0, $dao->count());
+        $this->assertEquals(1, $dao->count([['property' => 'active', 'operator'=>'<', 'value' => 2]]));
+        $daoGetDeactivated = $dao->get($newkey);
         $this->assertIsArray($daoGetDeactivated);
-        $this->assertEquals($daoCreate, $daoGetDeactivated['id']);
+        $this->assertEquals($newkey, $daoGetDeactivated['id']);
         $this->assertEquals('zzz', $daoGetDeactivated['columnone']);
         $this->assertEquals('02-02-2030', $daoGetDeactivated['columntwo']);
         $this->assertEquals(0, $daoGetDeactivated['active']);
@@ -91,7 +106,7 @@ final class DAOTest extends TestCase
 
         // Testing another create
         $daoCreate = $dao->create(['columnone'=>'bbb','columntwo'=>'02-01-2030']);
-        $this->assertEquals(2, $daoCreate);
+        $this->assertEquals(3, $daoCreate);
 
         // Testing count - Database with one element (plus one more inactive element)
         $daoCount3 = $dao->count();
@@ -102,17 +117,17 @@ final class DAOTest extends TestCase
         $this->assertEquals(2, $daoCount4);
 
         // Testing exists - The element is inactive. Can only be retrieved by get.
-        $daoExists3 = $dao->exists('1');
+        $daoExists3 = $dao->exists('2');
         $this->assertEquals(false, $daoExists3);
 
         // Testing exists - The remaining active element.
-        $daoExists4 = $dao->exists('2');
+        $daoExists4 = $dao->exists('3');
         $this->assertEquals(true, $daoExists4);
 
         // Multiple queries
-        for ($i=0; $i < 5000; $i++) {
+        for ($i=0; $i < 50; $i++) {
             $daoCreatex = $dao->create(['columnone'=>microtime(),'columntwo'=>'01-01-2030']);
-            $this->assertEquals($i+3, $daoCreatex);
+            $this->assertEquals($i+4, $daoCreatex);
         }
 
     }
