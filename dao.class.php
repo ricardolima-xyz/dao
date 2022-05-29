@@ -31,7 +31,7 @@ class DAOException extends Exception
     }
 }
 
-abstract class DAO
+class DAO
 {
     protected $dbh;
     protected $entity;
