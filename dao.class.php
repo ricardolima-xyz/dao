@@ -191,7 +191,8 @@ abstract class DAO
     private function evalFilters($filters) {
         $filterQuery = array();
         if ($filters === null && $this->delMethod == self::DEL_METHOD_DEACTIVATE) {
-            return ' WHERE '.$this->esc($this->deactivateProperty).' = 1';
+            $true = ($this->properties[$this->deactivateProperty] == PDO::PARAM_STR) ? "'1'" : "1";
+            return ' WHERE '.$this->esc($this->deactivateProperty).' = '.$true;
         }
         if (is_array($filters)) foreach ($filters as $key => $filter) {
             if (!isset($filter['operator']))
