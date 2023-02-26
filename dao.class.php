@@ -246,13 +246,28 @@ class DAO
         }
     }
 
+    /** 
+     * Escapes table names and column names in the pattern:
+     *  table           => "table"
+     *  column          => "column"
+     *  table.column    => "table"."column"
+     *  table.*         => "table".*
+     */
     protected function esc($name) {
-        switch ($this->driver) {
-            case 'mysql':
-                return "`$name`";
-            default:
-                return "\"$name\"";
+        $parts = explode('.', $name);
+        foreach ($parts as $i => $value) {
+            if ($value == '*') continue;
+            
+            switch ($this->driver) {
+                case 'mysql':
+                    $parts[$i] = "`$value`";
+                    break;
+                default:
+                    $parts[$i] = "\"$name\"";
+                    break;
+            }
         }
+        return implode('.', $parts);
     }
 
     public function exists($key) {
