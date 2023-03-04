@@ -263,7 +263,7 @@ class DAO
                     $parts[$i] = "`$value`";
                     break;
                 default:
-                    $parts[$i] = "\"$name\"";
+                    $parts[$i] = "\"$value\"";
                     break;
             }
         }
