@@ -51,6 +51,7 @@ final class DAOTest extends TestCase
             'equals to operator' => [[['property' => 'active', 'operator'=>'=', 'value' => 0]], 2],
             'diffrent from operator' => [[['property' => 'columnone', 'operator'=>'<>', 'value' => 'value3']], 5],
             'greater than operator' => [[['property' => 'columnthree', 'operator'=>'>', 'value' => 500]], 1],
+            'less or equal than operator' => [[['property' => 'columnthree', 'operator'=>'<=', 'value' => 435.99]], 5],
             'like operator' => [[['property' => 'columnone', 'operator'=>'LIKE', 'value' => '%value%']], 6],
             'is null operator' => [[['property' => 'columntwo', 'operator'=>'IS NULL']], 2],
             'is not null operator' => [[['property' => 'columntwo', 'operator'=>'IS NOT NULL']], 4],
@@ -72,6 +73,31 @@ final class DAOTest extends TestCase
                 ('value6', 12, '2.6', 1)
         ");
         $result = $this->testDao->count($filters);
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testCountWithIllegalProperty(): void
+    {
+        $this->expectException(DAOException::class);
+        $result = $this->testDao->count(['property'=>'columnnine','operator'=>'=','value'=>'2']);
+    }
+
+    public function testCountWithIllegalOperator(): void
+    {
+        $this->expectException(DAOException::class);
+        $result = $this->testDao->count(['property'=>'columnone','operator'=>'OP','value'=>'2']);
+    }
+
+    public function testCountWithNoValueWhereItIsNeeded(): void
+    {
+        $this->expectException(DAOException::class);
+        $result = $this->testDao->count(['property'=>'columnone','operator'=>'=']);
+    }
+
+    public function testCountEmptySet(): void
+    {
+        $expectedResult = 0;
+        $result = $this->testDao->count();
         $this->assertEquals($expectedResult, $result);
     }
 
