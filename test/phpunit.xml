@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+  <coverage/>
+  <php>
+    <const name="DBDRIVER" value="sqlite"/>
+    <const name="DBHOST" value=""/>
+    <const name="DBNAME" value="test.sqlite"/>
+    <const name="DBUSER" value=""/>
+    <const name="DBPASSWORD" value=""/>
+  </php>
+  <testsuites>
+    <testsuite name="default">
+      <directory suffix=".php">cases</directory>
+    </testsuite>
+  </testsuites>
+  <logging>
+    <junit outputFile="log.xml"/>
+  </logging>
+</phpunit>

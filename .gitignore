@@ -1,2 +1,4 @@
 test/test.sqlite
+test/log.xml
+test/phpunit
 test/.phpunit.result.cache

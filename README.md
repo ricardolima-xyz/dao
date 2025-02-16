@@ -1,6 +1,12 @@
 # DAO-PHP
 This is a PHP implementation of a data access object using PDO. This library offers basic database manipulation capabilities, automating basic [Create-Read-Update-Delete](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) tasks. Currently tested on MySQL, MariaDB, SQLite and PostgreSQL
 
+* Important: To use it with mysql, enable ANSI Mode on the options when creating PDO connection
+
+```
+$connection = new PDO($connectionString, $db['user'], $db['password'], [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET sql_mode="ANSI"']); 
+```
+
 Using it is very simple. First you define your DAO:
 
 ```
