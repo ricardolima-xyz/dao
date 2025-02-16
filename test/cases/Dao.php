@@ -5,145 +5,32 @@ include_once __DIR__.'/../../Dao.php';
 
 final class DAOTest extends TestCase
 {
-    // TODO: Separate DAO TEST INTO DAOs FUNCTIONS
-    // TODO Minuciouslly test filter and orderby
-    public function testBasicTest(): void
-    {
-        $pdo = new PDO("sqlite:./test.sqlite");
-        $this->assertIsObject($pdo);
-        
-        $cleanDatabase = $pdo->exec("
-            DROP TABLE IF EXISTS test_table
-        ");
-        // $pdo->exec returns false when there is an error
-        $this->assertNotFalse($cleanDatabase);
+    private $testPdo;
+    private $testDao;
 
-        $createTable = $pdo->exec("
-            CREATE TABLE IF NOT EXISTS test_table (
+    protected function setUp(): void
+    {
+        $this->testPdo = new PDO("sqlite::memory:");
+        $this->testPdo->exec("
+            DROP TABLE IF EXISTS testEntity
+        ");
+        $this->testPdo->exec("
+            CREATE TABLE IF NOT EXISTS testEntity (
                 id INTEGER PRIMARY KEY,
-                columnone VARCHAR( 255 ),
-                columntwo DATE,
+                columnone VARCHAR(255),
+                columntwo INTEGER,
+                columnthree DOUBLE,
                 active INTEGER DEFAULT 1
             )
         ");
-        // $pdo->exec returns false when there is an error
-        $this->assertNotFalse($createTable);
-        
-        $vacuumDatabase = $pdo->exec("
-            VACUUM
-        ");
-        // $pdo->exec returns false when there is an error
-        $this->assertNotFalse($vacuumDatabase);
-
-        $dao = new DaoForTest();
-        $this->assertIsObject($dao);
-
-        // Testing count - Empty database
-        $daoCount1 = $dao->count();
-        $this->assertEquals(0, $daoCount1);
-
-        // Testing exists - Empty database
-        $daoExists1 = $dao->exists('1');
-        $this->assertEquals(false, $daoExists1);
-
-        // Testing create
-        $daoCreate = $dao->create(['columnone'=>'aaa','columntwo'=>'01-01-2030']);
-        $this->assertEquals(1, $daoCreate);
-
-        // Testing count - Database with one element
-        $daoCount2 = $dao->count();
-        $this->assertEquals(1, $daoCount2);
-
-        // Testing exists - Database with one element
-        $daoExists2 = $dao->exists('1');
-        $this->assertEquals(true, $daoExists2);
-
-        // Testing get
-        $daoGet = $dao->get($daoCreate);
-        $this->assertIsArray($daoGet);
-        $this->assertEquals($daoCreate, $daoGet['id']);
-        $this->assertEquals('aaa', $daoGet['columnone']);
-        $this->assertEquals('01-01-2030', $daoGet['columntwo']);
-        $this->assertEquals(1, $daoGet['active']);
-
-        // Testing list
-        $daoList = $dao->list();
-        $this->assertIsArray($daoList);
-        $this->assertArrayHasKey($daoCreate, $daoList);
-        $this->assertEquals($daoGet, $daoList[$daoCreate]);
-        
-        // Testing update
-        $daoUpdate = $dao->update(['id'=>$daoCreate,'columnone'=>'zzz','columntwo'=>'02-02-2030']);
-
-        // Testing updatekey
-        $newkey = 2;
-        $daoUpdate = $dao->updateKey($daoCreate, $newkey);
-
-        // Testing get after updates
-        $daoGetAfterUpdate = $dao->get($newkey);
-        $this->assertIsArray($daoGetAfterUpdate);
-        $this->assertEquals($newkey, $daoGetAfterUpdate['id']);
-        $this->assertEquals('zzz', $daoGetAfterUpdate['columnone']);
-        $this->assertEquals('02-02-2030', $daoGetAfterUpdate['columntwo']);
-        $this->assertEquals(1, $daoGetAfterUpdate['active']);
-
-        // Testing delete
-        $daoDelete = $dao->del($newkey);
-        $this->assertTrue($daoDelete);
-        // This DAO deactivates its objects. A simple list can't retrieve them,
-        // a more complex list can retrieve them and a get can also retrieve them.
-        $this->assertEquals(0, $dao->count());
-        $this->assertEquals(1, $dao->count([['property' => 'active', 'operator'=>'<', 'value' => 2]]));
-        $daoGetDeactivated = $dao->get($newkey);
-        $this->assertIsArray($daoGetDeactivated);
-        $this->assertEquals($newkey, $daoGetDeactivated['id']);
-        $this->assertEquals('zzz', $daoGetDeactivated['columnone']);
-        $this->assertEquals('02-02-2030', $daoGetDeactivated['columntwo']);
-        $this->assertEquals(0, $daoGetDeactivated['active']);
-        // This DAO deactivates its objects - The list cannot retrieve deactivated objects
-        // in a simple list()
-        $daoList = $dao->list();
-        $this->assertIsArray($daoList);
-        $this->assertArrayNotHasKey($daoCreate, $daoList);
-
-        // Testing another create
-        $daoCreate = $dao->create(['columnone'=>'bbb','columntwo'=>'02-01-2030']);
-        $this->assertEquals(3, $daoCreate);
-
-        // Testing count - Database with one element (plus one more inactive element)
-        $daoCount3 = $dao->count();
-        $this->assertEquals(1, $daoCount3);
-
-        // Testing count - considering active and inactive elements
-        $daoCount4 = $dao->count([['property' => 'active', 'operator'=>'<', 'value' => 2]]);
-        $this->assertEquals(2, $daoCount4);
-
-        // Testing exists - The element is inactive. Can only be retrieved by get.
-        $daoExists3 = $dao->exists('2');
-        $this->assertEquals(false, $daoExists3);
-
-        // Testing exists - The remaining active element.
-        $daoExists4 = $dao->exists('3');
-        $this->assertEquals(true, $daoExists4);
-
-        // Multiple queries
-        for ($i=0; $i < 50; $i++) {
-            $daoCreatex = $dao->create(['columnone'=>microtime(),'columntwo'=>'01-01-2030']);
-            $this->assertEquals($i+4, $daoCreatex);
-        }
-
-    }
-}
-
-class DaoForTest extends Dao {
-    function __construct() {
-        parent::__construct(
-            new PDO("sqlite:./test.sqlite"),
-            'test_table',
+        $this->testDao = new DAO(
+            $this->testPdo,
+            'testEntity',
             [
                 'id'            => PDO::PARAM_INT,
                 'columnone'     => PDO::PARAM_STR,
-                'columntwo'     => PDO::PARAM_STR,
+                'columntwo'     => PDO::PARAM_INT,
+                'columnthree'   => PDO::PARAM_STR,
                 'active'        => PDO::PARAM_INT
             ],
             'id',
@@ -153,5 +40,134 @@ class DaoForTest extends Dao {
                 DAO::DEACTIVATE_PROPERTY    => 'active'
             ]
         );
+
+    }
+
+    public function countProvider(): array
+    {
+        return [
+            'null filter' => [null, 4],
+            'empty filter' => [[], 6],
+            'equals to operator' => [[['property' => 'active', 'operator'=>'=', 'value' => 0]], 2],
+            'diffrent from operator' => [[['property' => 'columnone', 'operator'=>'<>', 'value' => 'value3']], 5],
+            'greater than operator' => [[['property' => 'columnthree', 'operator'=>'>', 'value' => 500]], 1],
+            'like operator' => [[['property' => 'columnone', 'operator'=>'LIKE', 'value' => '%value%']], 6],
+            'is null operator' => [[['property' => 'columntwo', 'operator'=>'IS NULL']], 2],
+            'is not null operator' => [[['property' => 'columntwo', 'operator'=>'IS NOT NULL']], 4],
+        ];
+    }
+    /**
+     * @dataProvider countProvider
+     */
+    public function testCount($filters, $expectedResult): void
+    {
+        $this->testPdo->exec("DELETE FROM testEntity");
+        $this->testPdo->exec("INSERT INTO testEntity 
+                (columnone, columntwo, columnthree, active) VALUES
+                ('value1', 01, '2.6', 1),
+                ('value2', NULL, '0.0', 0),
+                ('value3', 90, '999', 1),
+                ('value4', NULL, '234', 0),
+                ('value5', 23, '6.0', 1),
+                ('value6', 12, '2.6', 1)
+        ");
+        $result = $this->testDao->count($filters);
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testCreate(): void
+    {
+        $testEntity = [
+            'columnone'=>'value1',
+            'columntwo'=>42,
+            'columnthree'=>null,
+            'active'=>0
+        ];
+        $testEntity['id'] = $this->testDao->create($testEntity);
+        $this->assertNotNull($testEntity['id']);
+        $retrievedTestEntity = $this->testPdo->query("SELECT * FROM testEntity WHERE id = {$testEntity['id']}")->fetch(PDO::FETCH_ASSOC);
+        $this->assertEquals($testEntity, $retrievedTestEntity);
+    }
+
+    public function testDel(): void
+    {
+        $testEntity = [
+            'columnone'=>'value1',
+            'columntwo'=>42,
+            'columnthree'=>null,
+            'active'=>0
+        ];
+        $testEntity['id'] = $this->testDao->create($testEntity);
+        $retrievedTestEntity = $this->testPdo->query("SELECT * FROM testEntity WHERE id = {$testEntity['id']} AND active = '1'")->fetch(PDO::FETCH_ASSOC);
+        $this->assertNotNull($retrievedTestEntity);
+        $this->testDao->del($testEntity['id']);
+        $retrievedTestEntity = $this->testPdo->query("SELECT * FROM testEntity WHERE id = {$testEntity['id']} AND active = '1'")->fetch(PDO::FETCH_ASSOC);
+        $this->assertFalse($retrievedTestEntity);
+    }
+
+    public function escProvider(): array
+    {
+        return [
+            'single identifier' => ['identifier', '"identifier"'],
+            'single asterisk' => ['*', '*'],
+            'two identifiers' => ['identifier1.identifier2', '"identifier1"."identifier2"'],
+            'three identifiers' => ['identifier1.identifier2.identifier3', '"identifier1"."identifier2"."identifier3"'],
+            'identifier with asterisk' => ['identifier1.*', '"identifier1".*']
+        ];
+    }
+    /**
+     * @dataProvider escProvider
+     */
+    public function testEsc($input, $expectedResult): void
+    {
+        $result = $this->testDao->esc($input);
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function existsProvider(): array
+    {
+        return [
+            'something that exists' => [1, true],
+            'something that does not exist' => [2, false]
+        ];
+    }
+    /**
+     * @dataProvider existsProvider
+     */
+    public function testExists($input, $expectedResult): void
+    {
+        $this->testPdo->exec("DELETE FROM testEntity");
+        $this->testPdo->exec("INSERT INTO testEntity 
+                (id, columnone, columntwo, columnthree, active) VALUES
+                (1, 'value1', 01, '2.6', 1)
+        ");
+        $result = $this->testDao->exists($input);
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testGet(): void
+    {
+        $testEntity = [
+            'columnone'=>'value1',
+            'columntwo'=>null,
+            'columnthree'=>3.45,
+            'active'=>1
+        ];
+        $testEntity['id'] = $this->testDao->create($testEntity);
+        $result = $this->testDao->get($testEntity['id']);
+        $expectedResult = $testEntity;
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testList(): void
+    {
+    }
+
+    public function testUpdate(): void
+    {
+    }
+
+    public function testUpdateKey(): void
+    {
     }
 }

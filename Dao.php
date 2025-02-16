@@ -24,14 +24,14 @@
  */
 
  
-class DaoException extends Exception
+class DAOException extends Exception
 {
     public function __construct($message, $code = 0, Exception $previous = null) {
         parent::__construct($message, $code, $previous);
     }
 }
 
-class Dao
+class DAO
 {
     protected $dbh;
     protected $entity;
@@ -42,11 +42,11 @@ class Dao
     private $deactivateProperty;
     private $driver;
     
-    protected const DEL_METHOD = 'del-method';
-    protected const DEL_METHOD_DELETE = 'del-method-delete';
-    protected const DEL_METHOD_DEACTIVATE = 'del-method-deactivate';
+    public const DEL_METHOD = 'del-method';
+    public const DEL_METHOD_DELETE = 'del-method-delete';
+    public const DEL_METHOD_DEACTIVATE = 'del-method-deactivate';
 
-    protected const DEACTIVATE_PROPERTY = 'deactivate-property';
+    public const DEACTIVATE_PROPERTY = 'deactivate-property';
 
     // TODO: new constructor is under construction
     /** 
@@ -240,8 +240,9 @@ class Dao
                 return true;
                 break;
             case self::DEL_METHOD_DEACTIVATE:
+                $deactivated = ($this->properties[$this->deactivateProperty] == PDO::PARAM_STR) ? "'0'" : "0";
                 $query = 'UPDATE '.$this->esc($this->entity);
-                $query.= ' SET '.$this->esc($this->deactivateProperty).' = 0';
+                $query.= ' SET '.$this->esc($this->deactivateProperty).' = '.$deactivated;
                 $query.= ' WHERE '.$this->esc($this->key).' = ?';
                 $stmt = $this->dbh->prepare($query);
                 $stmt->bindValue(1, $key, $this->properties[$this->key]);
@@ -258,7 +259,7 @@ class Dao
      *  table.column    => "table"."column"
      *  table.*         => "table".*
      */
-    protected function esc($name) {
+    public function esc($name) {
         $parts = explode('.', $name);
         foreach ($parts as $i => $value) {
             if ($value == '*') continue;
