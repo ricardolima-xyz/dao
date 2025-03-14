@@ -8,7 +8,9 @@ This is a [**Data Access Object** design pattern ](https://en.wikipedia.org/wiki
 * It depends on PDO
 * It is compatible with mysql if it uses ANSI mode. Make sure that tables were creaded in ANSI mode and set ANSI Mode when creating the PDO connection 
 ```php
-$connection = new PDO($connectionString, $db['user'], $db['password'], [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET sql_mode="ANSI"']); 
+$connection = new PDO(
+    $connectionString, $dbUser, $dbPassword, [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET sql_mode="ANSI"']
+); 
 ```
 
 ## Getting started
