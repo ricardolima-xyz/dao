@@ -19,7 +19,7 @@ final class DAOTest extends TestCase
                 id INTEGER PRIMARY KEY,
                 columnone VARCHAR(255),
                 columntwo INTEGER,
-                columnthree DOUBLE,
+                columnthree DOUBLE PRECISION,
                 active INTEGER DEFAULT 1
             )
         ");
