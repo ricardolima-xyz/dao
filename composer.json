@@ -1,7 +1,7 @@
 {
   "name": "ezydb/ezydb",
   "description": "PHP library aimed at simplifying database interoperability and manipulation.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "library",
   "license": "MIT",
   "authors": [
