@@ -10,7 +10,7 @@
 
 FROM debian:12-slim
 
-ARG PHPVERSION="8.3"
+ARG PHPVERSION="8.2"
 ENV BASEFOLDER="/ezydb"
 
 # Creating folder structure and copying files
