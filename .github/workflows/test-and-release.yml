@@ -16,14 +16,14 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.0' # Adjust to your PHP version
+        php-version: '8.3' # Adjust to your PHP version
         extensions: pdo, pdo_sqlite, pdo_mysql, pdo_pgsql
         coverage: none
 
     - name: Install dependencies
       run: composer install
 
-    - name: Check PHP compatibility (minimum version 8.0)
+    - name: Check PHP compatibility (version 8.0)
       run: composer phpcompatibility
 
     - name: Run tests
@@ -41,7 +41,7 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.0'
+        php-version: '8.3'
 
     - name: Bump version and create release
       id: create_release
