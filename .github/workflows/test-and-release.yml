@@ -96,6 +96,6 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./src
+        asset_path: ./src.zip
         asset_name: src.zip
         asset_content_type: application/zip
