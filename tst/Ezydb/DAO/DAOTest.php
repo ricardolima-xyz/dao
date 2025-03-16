@@ -1,7 +1,10 @@
 <?php
-use PHPUnit\Framework\TestCase;
 
-include_once __DIR__.'/../../Dao.php';
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Ezydb\DAO\DAO;
+use Ezydb\DAO\DAOException;
+use \PDO;
 
 final class DAOTest extends TestCase
 {
@@ -160,11 +163,11 @@ final class DAOTest extends TestCase
                 'columnthree'   => PDO::PARAM_STR,
                 'active'        => PDO::PARAM_INT
             ],
-            new StdClass()
+            new \StdClass()
         );
     }
 
-    public function countProvider(): array
+    public static function countProvider(): array
     {
         return [
             'null filter' => [null, 4],
@@ -178,9 +181,9 @@ final class DAOTest extends TestCase
             'is not null operator' => [[['property' => 'columntwo', 'operator'=>'IS NOT NULL']], 4],
         ];
     }
-    /**
-     * @dataProvider countProvider
-     */
+
+
+    #[DataProvider('countProvider')]
     public function testCount($filters, $expectedResult): void
     {
         $this->testPdo->exec("DELETE FROM testEntity");
@@ -252,7 +255,7 @@ final class DAOTest extends TestCase
         $this->assertFalse($retrievedTestEntity);
     }
 
-    public function escProvider(): array
+    public static function escProvider(): array
     {
         return [
             'single identifier' => ['identifier', '"identifier"'],
@@ -262,25 +265,23 @@ final class DAOTest extends TestCase
             'identifier with asterisk' => ['identifier1.*', '"identifier1".*']
         ];
     }
-    /**
-     * @dataProvider escProvider
-     */
+    
+    #[DataProvider('escProvider')]
     public function testEsc($input, $expectedResult): void
     {
         $result = $this->testDao->esc($input);
         $this->assertEquals($expectedResult, $result);
     }
 
-    public function existsProvider(): array
+    public static function existsProvider(): array
     {
         return [
             'something that exists' => [1, true],
             'something that does not exist' => [2, false]
         ];
     }
-    /**
-     * @dataProvider existsProvider
-     */
+
+    #[DataProvider('existsProvider')]
     public function testExists($input, $expectedResult): void
     {
         $this->testPdo->exec("DELETE FROM testEntity");
@@ -306,7 +307,7 @@ final class DAOTest extends TestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    public function listProvider(): array
+    public static function listProvider(): array
     {
         return [
             'default, default, default' => [true, null, null, [
@@ -344,9 +345,8 @@ final class DAOTest extends TestCase
             ]],
         ];
     }
-    /**
-     * @dataProvider listProvider
-     */
+
+    #[DataProvider('listProvider')]
     public function testList($elementKeyAsArrayKey, $filters, $orderBy, $expectedResult): void
     {
         $this->testPdo->exec("DELETE FROM testEntity");

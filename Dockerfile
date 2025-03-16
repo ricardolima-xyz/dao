@@ -1,17 +1,17 @@
-# This is the Dockerfile to set up a development environment for dao
+# This is the Dockerfile to set up a development environment for ezydb
 #
 # - Building the docker image: 
-#   docker build -t dao .
+#   docker build -t ezydb .
 #
 # - Running the image as a container (assuming code is located in ~/code/evt123):
-#   docker run -v ~/code/dao/:/dao/ -it dao
+#   docker run -v ~/code/ezydb/:/ezydb/ -it ezydb
 
 # Base image and settings
 
 FROM debian:12-slim
 
 ARG PHPVERSION="8.3"
-ENV BASEFOLDER="/dao"
+ENV BASEFOLDER="/ezydb"
 
 # Creating folder structure and copying files
 

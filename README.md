@@ -1,9 +1,14 @@
-# DAO
-This is a [**Data Access Object** design pattern ](https://en.wikipedia.org/wiki/Data_access_object) implementation for PHP, offering basic database manipulation capabilities, automating basic [Create-Read-Update-Delete](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) tasks without the need of writing SQL queries, at least for the most basic operations.
- 
-> DAO internally uses **prepared statements** in all its generated queries, making it super safe.
- 
-## Notes
+# ezydb
+
+**ezydb** is a PHP library aimed at simplifying database interoperability and manipulation. It provides a foundational implementation of the [Data Access Object (DAO)](https://en.wikipedia.org/wiki/Data_access_object) design pattern, enabling basic [Create-Read-Update-Delete (CRUD)](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations with minimal SQL writing. Additionally, it includes utilities for SQL interoperability, making it easier to work with different database engines. With built-in support for prepared statements, it focuses on providing a secure and efficient way to interact with databases, while continuing to evolve as a project.
+
+## Testing
+```bash
+composer update
+composer test
+```
+
+## Notes - DAO
 * Currently tested with MySQL, MariaDB, SQLite and PostgreSQL.
 * It depends on PDO
 * It is compatible with mysql if it uses ANSI mode. Make sure that tables were creaded in ANSI mode and set ANSI Mode when creating the PDO connection 
@@ -13,7 +18,7 @@ $connection = new PDO(
 ); 
 ```
 
-## Getting started
+## Getting started - DAO
 
 Fist you need a database. In our example, we are using SQLite as our database engine.
 ```sql
