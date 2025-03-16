@@ -62,6 +62,12 @@ jobs:
         NEW_VERSION="$MAJOR.$MINOR.$PATCH"
         echo "New version: $NEW_VERSION"
 
+        # Check if the tag already exists
+        if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
+          echo "Tag v$NEW_VERSION already exists. Skipping version bump."
+          exit 0
+        fi
+
         # Update composer.json with the new version
         jq --arg version "$NEW_VERSION" '.version = $version' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
 
