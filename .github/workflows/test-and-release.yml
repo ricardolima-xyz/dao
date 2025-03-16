@@ -44,7 +44,7 @@ jobs:
         php-version: '8.3'
 
     - name: Bump version and create release
-      id: create_release
+      id: bump_version
       run: |
         # Extract the current version from composer.json
         CURRENT_VERSION=$(jq -r '.version' composer.json)
