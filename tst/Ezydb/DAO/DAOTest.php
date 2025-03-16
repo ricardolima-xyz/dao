@@ -4,7 +4,6 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Ezydb\DAO\DAO;
 use Ezydb\DAO\DAOException;
-use \PDO;
 
 final class DAOTest extends TestCase
 {
